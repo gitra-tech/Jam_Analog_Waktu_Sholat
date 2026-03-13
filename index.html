@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jam Syakila - KEMENAG RI</title>
+  <title>Jam Syakila - Koreksi Waktu</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
@@ -32,10 +32,10 @@
   <div class="info-card">
     <p id="digital">00:00:00</p>
     <p id="date">Memuat Tanggal...</p>
-    <p id="location-coords">Sinkronisasi GPS...</p>
+    <p id="location-coords">Menyesuaikan Waktu...</p>
     <hr>
     <div id="prayer-times" class="prayer-container">
-      <div style="grid-column: span 2;">Memuat Jadwal KEMENAG...</div>
+      <div style="grid-column: span 2;">Sinkronisasi Jadwal...</div>
     </div>
   </div>
 
@@ -47,6 +47,9 @@
     const coordsDiv = document.getElementById("location-coords");
     const prayerDiv = document.getElementById("prayer-times");
 
+    // KUNCI KOREKSI: Kurangi 2 menit
+    const MINUTE_ADJUSTMENT = -2;
+
     function drawClock() {
       const now = new Date();
       const ms = now.getMilliseconds();
@@ -57,7 +60,6 @@
       ctx.clearRect(0, 0, 800, 800);
       const cx = 400, cy = 400, radius = 370;
 
-      // Penanda Menit & Jam
       for(let i=0; i<60; i++) {
         let ang = i * Math.PI/30;
         let isHour = i % 5 === 0;
@@ -69,7 +71,6 @@
         ctx.stroke();
       }
 
-      // Angka Jam
       ctx.font = "bold 65px Arial";
       ctx.fillStyle = "#2c3e50";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -78,17 +79,14 @@
         ctx.fillText(num.toString(), cx + Math.cos(ang) * 280, cy + Math.sin(ang) * 280);
       }
 
-      // MEREK JAM: Warna disamakan (#2c3e50), ukuran 30px (sedikit diperkecil)
       ctx.font = "bold italic 30px Georgia";
       ctx.fillStyle = "#2c3e50";
       ctx.fillText("Syakila Azzahra P", cx, cy + 110);
 
-      // Jarum Jam
       drawHand((hr * Math.PI/6) - Math.PI/2, 220, 18, "#2c3e50");
       drawHand((min * Math.PI/30) - Math.PI/2, 310, 10, "#34495e");
       drawHand((sec * Math.PI/30) - Math.PI/2, 340, 5, "#e74c3c");
 
-      // Titik Pusat
       ctx.beginPath(); ctx.arc(cx, cy, 15, 0, 2*Math.PI); ctx.fillStyle = "#2c3e50"; ctx.fill();
       ctx.beginPath(); ctx.arc(cx, cy, 6, 0, 2*Math.PI); ctx.fillStyle = "#e74c3c"; ctx.fill();
 
@@ -105,37 +103,49 @@
       ctx.stroke();
     }
 
+    // Fungsi pembantu untuk menambah/kurang menit pada string "HH:MM"
+    function adjustTime(timeStr, minutesToChange) {
+      let [hours, minutes] = timeStr.split(':').map(Number);
+      let date = new Date();
+      date.setHours(hours);
+      date.setMinutes(minutes + minutesToChange);
+      
+      let newH = String(date.getHours()).padStart(2, '0');
+      let newM = String(date.getMinutes()).padStart(2, '0');
+      return `${newH}:${newM}`;
+    }
+
     async function getPrayerData() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          coordsDiv.innerText = `Terhubung ke KEMENAG RI (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
+          coordsDiv.innerText = `KEMENAG RI (Koreksi ${MINUTE_ADJUSTMENT}m)`;
 
           try {
-            // Parameter KEMENAG: Subuh 20, Isya 18
             const url = `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=99&methodSettings=20,null,18`;
             const response = await fetch(url);
             const data = await response.json();
-            displayPrayers(data.data.timings);
+            
+            const raw = data.data.timings;
+            // Terapkan koreksi menit
+            const adjustedTimings = {
+              Subuh: adjustTime(raw.Fajr, MINUTE_ADJUSTMENT),
+              Dzuhur: adjustTime(raw.Dhuhr, MINUTE_ADJUSTMENT),
+              Ashar: adjustTime(raw.Asr, MINUTE_ADJUSTMENT),
+              Maghrib: adjustTime(raw.Maghrib, MINUTE_ADJUSTMENT),
+              Isya: adjustTime(raw.Isha, MINUTE_ADJUSTMENT)
+            };
+            
+            displayPrayers(adjustedTimings);
           } catch (err) {
             prayerDiv.innerHTML = "Gagal memuat jadwal.";
           }
-        }, () => {
-          coordsDiv.innerText = "GPS Mati. Menggunakan Estimasi Jakarta.";
-          fetchDefaultJakarta();
         });
       }
     }
 
-    async function fetchDefaultJakarta() {
-      const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=Jakarta&country=Indonesia&method=20`);
-      const data = await res.json();
-      displayPrayers(data.data.timings);
-    }
-
-    function displayPrayers(timings) {
-      const times = { Subuh: timings.Fajr, Dzuhur: timings.Dhuhr, Ashar: timings.Asr, Maghrib: timings.Maghrib, Isya: timings.Isha };
+    function displayPrayers(times) {
       const now = new Date();
       const currentMin = now.getHours() * 60 + now.getMinutes();
       let html = "";
