@@ -46,10 +46,10 @@
       ctx.arc(150,150,140,0,2*Math.PI);
       ctx.stroke();
 
-      // garis menit/jam (tick marks)
+      // garis menit/jam (tick marks) rata dengan lingkaran luar
       for(let i=0; i<60; i++){
         let ang = i * Math.PI/30;
-        let inner = (i % 5 === 0) ? 125 : 135;
+        let inner = (i % 5 === 0) ? 130 : 135;
         let outer = 140;
         let x1 = 150 + Math.cos(ang - Math.PI/2) * inner;
         let y1 = 150 + Math.sin(ang - Math.PI/2) * inner;
@@ -63,16 +63,23 @@
         ctx.stroke();
       }
 
-      // angka 1-12
-      ctx.font = "16px Arial";
+      // angka 1-12 lebih besar + bayangan tipis
+      ctx.font = "22px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+      ctx.fillStyle = "black";
+      ctx.shadowColor = "rgba(0,0,0,0.3)";
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
       for(let num=1; num<=12; num++){
         let ang = num * Math.PI/6;
         let x = 150 + Math.cos(ang - Math.PI/2) * 100;
         let y = 150 + Math.sin(ang - Math.PI/2) * 100;
         ctx.fillText(num.toString(), x, y);
       }
+      // reset shadow agar tidak mempengaruhi jarum
+      ctx.shadowColor = "transparent";
 
       // jarum jam
       let hrAng = ((hr%12) + min/60) * Math.PI/6;
