@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jam Analog</title>
+  <style>
+    canvas { background: #f0f0f0; display:block; margin:auto; }
+  </style>
+</head>
+<body>
+  <canvas id="clock" width="300" height="300"></canvas>
+  <script>
+    const canvas = document.getElementById("clock");
+    const ctx = canvas.getContext("2d");
+    function drawClock(){
+      const now = new Date();
+      const sec = now.getSeconds();
+      const min = now.getMinutes();
+      const hr = now.getHours();
+      ctx.clearRect(0,0,300,300);
+      ctx.beginPath();
+      ctx.arc(150,150,140,0,2*Math.PI);
+      ctx.stroke();
+      // jarum jam
+      ctx.moveTo(150,150);
+      ctx.lineTo(150+60*Math.cos((hr%12)*30*Math.PI/180 - Math.PI/2),
+                 150+60*Math.sin((hr%12)*30*Math.PI/180 - Math.PI/2));
+      ctx.stroke();
+      // jarum menit
+      ctx.moveTo(150,150);
+      ctx.lineTo(150+90*Math.cos(min*6*Math.PI/180 - Math.PI/2),
+                 150+90*Math.sin(min*6*Math.PI/180 - Math.PI/2));
+      ctx.stroke();
+      // jarum detik
+      ctx.moveTo(150,150);
+      ctx.lineTo(150+100*Math.cos(sec*6*Math.PI/180 - Math.PI/2),
+                 150+100*Math.sin(sec*6*Math.PI/180 - Math.PI/2));
+      ctx.strokeStyle="red"; ctx.stroke();
+      ctx.strokeStyle="black";
+    }
+    setInterval(drawClock,1000);
+  </script>
+</body>
+</html>
