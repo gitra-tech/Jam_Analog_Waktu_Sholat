@@ -54,16 +54,21 @@
       ctx.fillStyle = grad;
       ctx.fillRect(0,0,400,400);
 
-      // lingkaran luar
+      // lingkaran luar hitam
       ctx.beginPath();
       ctx.arc(200,200,180,0,2*Math.PI);
       ctx.strokeStyle = "black";
+      ctx.lineWidth = 3;
       ctx.stroke();
 
-      // lingkaran dalam
+      // highlight putih tipis di lingkaran luar (efek kaca)
+      let highlight = ctx.createLinearGradient(200,20,200,100);
+      highlight.addColorStop(0,"rgba(255,255,255,0.8)");
+      highlight.addColorStop(1,"rgba(255,255,255,0)");
       ctx.beginPath();
-      ctx.arc(200,200,160,0,2*Math.PI);
-      ctx.strokeStyle = "black";
+      ctx.arc(200,200,180,Math.PI*1.05,Math.PI*1.95);
+      ctx.strokeStyle = highlight;
+      ctx.lineWidth = 6;
       ctx.stroke();
 
       // garis menit/jam rapat ke luar
@@ -83,7 +88,7 @@
         ctx.stroke();
       }
 
-      // angka jam besar & tebal
+      // angka jam besar & tebal + highlight tipis
       ctx.font = "bold 30px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -97,6 +102,14 @@
         let x = 200 + Math.cos(ang - Math.PI/2) * 150;
         let y = 200 + Math.sin(ang - Math.PI/2) * 150;
         ctx.fillText(num.toString(), x, y);
+
+        // highlight putih tipis di angka
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = "white";
+        ctx.font = "bold 30px Arial";
+        ctx.fillText(num.toString(), x-1, y-1);
+        ctx.restore();
       }
       ctx.shadowColor = "transparent";
 
