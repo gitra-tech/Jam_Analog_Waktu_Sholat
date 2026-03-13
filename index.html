@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jam Syakila - Perfect Circle</title>
+  <title>Jam Syakila - KEMENAG RI</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     
@@ -13,16 +13,15 @@
       background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%); color: #333;
     }
 
-    /* KUNCI UTAMA: Mengunci perbandingan 1:1 */
     .clock-outer-container {
       width: 100%;
       max-width: 380px;
-      padding: 10px; /* Jarak aman agar bayangan tidak terpotong */
+      padding: 10px;
     }
 
     .clock-wrapper {
       width: 100%;
-      aspect-ratio: 1 / 1; /* Memaksa tinggi = lebar secara matematis */
+      aspect-ratio: 1 / 1;
       position: relative;
     }
 
@@ -50,7 +49,16 @@
 
     #digital { font-size: 2.2rem; font-weight: 800; color: #2c3e50; margin: 0; font-variant-numeric: tabular-nums; }
     #date { font-size: 0.9rem; color: #5d6d7e; margin-top: 5px; }
-    #location-coords { font-size: 0.75rem; color: #7f8c8d; margin-top: 8px; font-weight: bold; }
+
+    /* WARNA BARU: Biru Elegan untuk Status GPS */
+    #location-coords { 
+      font-size: 0.8rem; 
+      color: #2980b9; /* Biru elegan (Steel Blue) */
+      margin-top: 10px; 
+      font-weight: 600; 
+      letter-spacing: 0.3px;
+    }
+
     hr { border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 15px 0; }
     .prayer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; }
     .next-prayer { grid-column: span 2; background: #e74c3c; color: white; padding: 8px; border-radius: 10px; font-weight: bold; margin-bottom: 5px; }
@@ -141,6 +149,7 @@
         navigator.geolocation.getCurrentPosition(async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
+          // Tampilan teks diperbarui agar lebih elegan
           coordsDiv.innerText = `Terhubung ke KEMENAG RI (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
 
           try {
@@ -152,7 +161,7 @@
             prayerDiv.innerHTML = "Gagal memuat jadwal.";
           }
         }, () => {
-          coordsDiv.innerText = "GPS Mati. Menggunakan Estimasi Jakarta.";
+          coordsDiv.innerText = "GPS Tidak Aktif";
           fetchDefaultJakarta();
         });
       }
