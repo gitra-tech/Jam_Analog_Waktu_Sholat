@@ -193,61 +193,24 @@
 
     requestAnimationFrame(drawClock);
 
-    // === Jadwal Sholat ===
-    async function loadPrayerTimes(){
-      try {
-        let today = new Date();
-        let y = today.getFullYear();
-        let m = String(today.getMonth()+1).padStart(2,'0');
-        let d = String(today.getDate()).padStart(2,'0');
+    // === Jadwal Sholat Hardcode ===
+    function loadPrayerTimes(){
+      const prayerTimes = {
+        Subuh: "04:49",
+        Dzuhur: "12:10",
+        Ashar: "15:12",
+        Maghrib: "18:13",
+        Isya: "19:22"
+      };
 
-        // API jadwal sholat (Poso, id kota 703)
-        let response = await fetch(`https://api.myquran.com/v1/sholat/jadwal/703/${y}/${m}/${d}`);
-        let data = await response.json();
-        let jadwal = data.data.jadwal;
-
-        let now = today.getHours()*60 + today.getMinutes();
-        function toMinutes(time){
-          let [h,m] = time.split(":").map(Number);
-          return h*60 + m;
-        }
-
-        let times = {
-      Subuh: jadwal.subuh,
-      Dzuhur: jadwal.dzuhur,
-      Ashar: jadwal.ashar,
-      Maghrib: jadwal.maghrib,
-      Isya: jadwal.isya
-    };
-
-    // Cari waktu sholat berikutnya
-    let nextPrayer = null;
-    for(let [name,time] of Object.entries(times)){
-      if(toMinutes(time) > now){
-        nextPrayer = name;
-        break;
-      }
-    }
-
-    // Buat HTML dengan highlight
-    let html = "<h3>Waktu Sholat</h3>";
-    for(let [name,time] of Object.entries(times)){
-      if(name === nextPrayer){
-        html += `<span style="color:red;font-weight:bold">${name}: ${time}</span><br>`;
-      } else {
+      let html = "<h3>Waktu Sholat</h3>";
+      for(let [name,time] of Object.entries(prayerTimes)){
         html += `${name}: ${time}<br>`;
       }
+      document.getElementById("prayer-times").innerHTML = html;
     }
 
-    document.getElementById("prayer-times").innerHTML = html;
-  } catch(err){
-    document.getElementById("prayer-times").innerHTML = "Gagal memuat jadwal sholat.";
-  }
-}
-
-// panggil sekali saat halaman dibuka
-loadPrayerTimes();
-      </script>
+    loadPrayerTimes();
+  </script>
 </body>
 </html>
-
