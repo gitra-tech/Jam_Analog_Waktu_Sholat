@@ -46,10 +46,10 @@
       ctx.arc(150,150,140,0,2*Math.PI);
       ctx.stroke();
 
-      // garis menit (tick marks)
+      // garis menit/jam (tick marks)
       for(let i=0; i<60; i++){
         let ang = i * Math.PI/30; // 6 derajat per menit
-        let inner = (i % 5 === 0) ? 115 : 130; // lebih panjang untuk jam
+        let inner = (i % 5 === 0) ? 125 : 135; // jam lebih pendek
         let outer = 140;
         let x1 = 150 + Math.cos(ang - Math.PI/2) * inner;
         let y1 = 150 + Math.sin(ang - Math.PI/2) * inner;
@@ -58,7 +58,8 @@
         ctx.beginPath();
         ctx.moveTo(x1,y1);
         ctx.lineTo(x2,y2);
-        ctx.lineWidth = (i % 5 === 0) ? 3 : 1; // tebal untuk jam
+        ctx.lineWidth = (i % 5 === 0) ? 2 : 1; // jam sedikit lebih tebal
+        ctx.strokeStyle = "black"; // semua hitam
         ctx.stroke();
       }
 
@@ -74,42 +75,4 @@
       }
 
       // jarum jam
-      let hrAng = ((hr%12) + min/60) * Math.PI/6;
-      drawHand(hrAng, 70, 6, "black");
-
-      // jarum menit
-      let minAng = (min + sec/60) * Math.PI/30;
-      drawHand(minAng, 100, 4, "black");
-
-      // jarum detik
-      let secAng = sec * Math.PI/30;
-      drawHand(secAng, 110, 2, "red");
-
-      // jam digital + hari + tanggal
-      const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-      const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-      let dayName = days[now.getDay()];
-      let date = now.getDate();
-      let monthName = months[now.getMonth()];
-      let year = now.getFullYear();
-
-      let digitalTime = `${hr.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
-      let fullDate = `${dayName}, ${date} ${monthName} ${year}`;
-
-      digital.innerHTML = digitalTime + "<br>" + fullDate;
-    }
-
-    function drawHand(angle, length, width, color){
-      ctx.beginPath();
-      ctx.lineWidth = width;
-      ctx.strokeStyle = color;
-      ctx.moveTo(150,150);
-      ctx.lineTo(150 + length*Math.cos(angle - Math.PI/2),
-                 150 + length*Math.sin(angle - Math.PI/2));
-      ctx.stroke();
-    }
-
-    setInterval(drawClock,1000);
-  </script>
-</body>
-</html>
+      let hrAng = ((hr
