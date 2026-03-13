@@ -8,64 +8,30 @@
       font-family: 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(135deg, #74ebd5, #ACB6E5);
       color: #333;
-      transition: background 0.5s, color 0.5s;
     }
     canvas {
       background: #fff;
       display: block;
       margin: 30px auto;
-      border: 8px solid #ff4d4d;
+      border: 8px solid #000000; /* border hitam */
       border-radius: 50%;
       box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      transition: background 0.5s, border 0.5s;
     }
     #digital {
       font-size: 24px;
       margin-top: 10px;
       font-weight: bold;
-      color: #222;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-      transition: color 0.5s;
-    }
-    #toggle {
-      margin-top: 15px;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 5px;
-      background: #333;
-      color: #fff;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    /* Mode Gelap */
-    body.dark {
-      background: linear-gradient(135deg, #2c3e50, #000000);
-      color: #eee;
-    }
-    body.dark canvas {
-      background: #222;
-      border: 8px solid #00c3ff;
-    }
-    body.dark #digital {
-      color: #eee;
-      text-shadow: 0 0 5px #00c3ff;
-    }
-    body.dark #toggle {
-      background: #eee;
-      color: #000;
     }
   </style>
 </head>
 <body>
   <canvas id="clock" width="300" height="300"></canvas>
   <div id="digital"></div>
-  <button id="toggle">🌙 Mode Gelap</button>
 
   <script>
     const canvas = document.getElementById("clock");
     const ctx = canvas.getContext("2d");
     const digital = document.getElementById("digital");
-    const toggleBtn = document.getElementById("toggle");
 
     function drawClock(){
       const now = new Date();
@@ -80,14 +46,30 @@
       ctx.arc(150,150,140,0,2*Math.PI);
       ctx.stroke();
 
+      // garis menit (tick marks)
+      for(let i=0; i<60; i++){
+        let ang = i * Math.PI/30; // 6 derajat per menit
+        let inner = (i % 5 === 0) ? 115 : 130; // lebih panjang untuk jam
+        let outer = 140;
+        let x1 = 150 + Math.cos(ang - Math.PI/2) * inner;
+        let y1 = 150 + Math.sin(ang - Math.PI/2) * inner;
+        let x2 = 150 + Math.cos(ang - Math.PI/2) * outer;
+        let y2 = 150 + Math.sin(ang - Math.PI/2) * outer;
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y2);
+        ctx.lineWidth = (i % 5 === 0) ? 3 : 1; // tebal untuk jam
+        ctx.stroke();
+      }
+
       // angka 1-12
       ctx.font = "16px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       for(let num=1; num<=12; num++){
         let ang = num * Math.PI/6;
-        let x = 150 + Math.cos(ang - Math.PI/2) * 120;
-        let y = 150 + Math.sin(ang - Math.PI/2) * 120;
+        let x = 150 + Math.cos(ang - Math.PI/2) * 100;
+        let y = 150 + Math.sin(ang - Math.PI/2) * 100;
         ctx.fillText(num.toString(), x, y);
       }
 
@@ -128,12 +110,6 @@
     }
 
     setInterval(drawClock,1000);
-
-    // Toggle Dark Mode
-    toggleBtn.addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-      toggleBtn.textContent = document.body.classList.contains("dark") ? "☀️ Mode Terang" : "🌙 Mode Gelap";
-    });
   </script>
 </body>
 </html>
