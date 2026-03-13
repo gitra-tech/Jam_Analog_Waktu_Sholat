@@ -1,235 +1,208 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Jam Analog & Digital</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jam Analog & Digital Responsive</title>
   <style>
     body {
-      text-align: center;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: linear-gradient(135deg, #74ebd5, #ACB6E5);
       color: #333;
     }
+
+    /* Container untuk menjaga proporsi */
+    .clock-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px; /* Ukuran maksimal di desktop */
+      aspect-ratio: 1 / 1;
+    }
+
     canvas {
+      width: 100%;
+      height: 100%;
       display: block;
-      margin: 30px auto;
-      border: 10px solid #000000;
+      border: 8px solid #222;
       border-radius: 50%;
-      box-shadow: 0 0 25px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      background-color: #fff;
     }
+
+    #info-panel {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+      width: 90%;
+      max-width: 360px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
     #digital {
-      font-size: 30px;
+      font-size: clamp(1.5rem, 5vw, 2rem);
       font-weight: bold;
-      margin-top: 12px;
+      letter-spacing: 2px;
     }
+
     #date {
-      font-size: 20px;
-      margin-top: 5px;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      color: #555;
     }
-    #prayer-times {
-      font-size: 18px;
-      margin-top: 10px;
-      line-height: 1.6;
+
+    .prayer-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    .highlight {
+      color: #e74c3c;
+      font-weight: bold;
+      grid-column: span 2;
+      text-align: center;
+      background: rgba(231, 76, 60, 0.1);
+      padding: 5px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <canvas id="clock" width="400" height="400"></canvas>
-  <div id="digital"></div>
-  <div id="date"></div>
-  <div id="prayer-times"></div>
+
+  <div class="clock-container">
+    <canvas id="clock" width="800" height="800"></canvas>
+  </div>
+
+  <div id="info-panel">
+    <div id="digital">00:00:00</div>
+    <div id="date">Memuat Tanggal...</div>
+    <hr style="border: 0; border-top: 1px solid #ccc;">
+    <h4 style="margin: 10px 0;">Jadwal Sholat</h4>
+    <div id="prayer-times" class="prayer-list"></div>
+  </div>
 
   <script>
     const canvas = document.getElementById("clock");
     const ctx = canvas.getContext("2d");
     const digital = document.getElementById("digital");
     const dateDiv = document.getElementById("date");
+    const prayerDiv = document.getElementById("prayer-times");
 
-    function drawClock(){
+    function drawClock() {
       const now = new Date();
       const ms = now.getMilliseconds();
       const sec = now.getSeconds() + ms/1000;
       const min = now.getMinutes() + sec/60;
       const hr = now.getHours() + min/60;
 
-      ctx.clearRect(0,0,400,400);
+      // Reset canvas
+      ctx.clearRect(0,0,800,800);
+      
+      // Center point
+      const cx = 400;
+      const cy = 400;
+      const radius = 360;
 
-      // background
-      let grad = ctx.createRadialGradient(200,200,50,200,200,200);
-      grad.addColorStop(0,"#ffffff");
-      grad.addColorStop(1,"#e0e0e0");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0,0,400,400);
-
-      // lingkaran luar
+      // Background
       ctx.beginPath();
-      ctx.arc(200,200,180,0,2*Math.PI);
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      ctx.arc(cx, cy, radius, 0, 2*Math.PI);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
 
-      // garis menit/jam
+      // Penanda Menit & Jam
       for(let i=0; i<60; i++){
         let ang = i * Math.PI/30;
-        let inner = (i % 5 === 0) ? 165 : 170;
-        let outer = 180;
-        let x1 = 200 + Math.cos(ang - Math.PI/2) * inner;
-        let y1 = 200 + Math.sin(ang - Math.PI/2) * inner;
-        let x2 = 200 + Math.cos(ang - Math.PI/2) * outer;
-        let y2 = 200 + Math.sin(ang - Math.PI/2) * outer;
+        let isHour = i % 5 === 0;
+        let len = isHour ? 40 : 20;
         ctx.beginPath();
-        ctx.moveTo(x1,y1);
-        ctx.lineTo(x2,y2);
-        ctx.lineWidth = (i % 5 === 0) ? 2 : 1;
-        ctx.strokeStyle = "black";
+        ctx.lineWidth = isHour ? 6 : 3;
+        ctx.strokeStyle = isHour ? "#000" : "#bbb";
+        ctx.moveTo(cx + Math.cos(ang) * (radius), cy + Math.sin(ang) * (radius));
+        ctx.lineTo(cx + Math.cos(ang) * (radius - len), cy + Math.sin(ang) * (radius - len));
         ctx.stroke();
       }
 
-      // angka jam
-      ctx.font = "bold 30px Arial";
+      // Angka
+      ctx.font = "bold 50px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = "black";
-      ctx.shadowColor = "rgba(0,0,0,0.3)";
-      ctx.shadowBlur = 3;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
+      ctx.fillStyle = "#222";
       for(let num=1; num<=12; num++){
-        let ang = num * Math.PI/6;
-        let x = 200 + Math.cos(ang - Math.PI/2) * 150;
-        let y = 200 + Math.sin(ang - Math.PI/2) * 150;
-        ctx.fillText(num.toString(), x, y);
-
-        ctx.save();
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = "white";
-        ctx.font = "bold 30px Arial";
-        ctx.fillText(num.toString(), x-1, y-1);
-        ctx.restore();
+        let ang = num * Math.PI/6 - Math.PI/2;
+        ctx.fillText(num.toString(), cx + Math.cos(ang) * 280, cy + Math.sin(ang) * 280);
       }
-      ctx.shadowColor = "transparent";
 
-      // merek jam
-      ctx.font = "italic 18px Georgia";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "black";
-      ctx.fillText("Syakila Azzahra P", 200, 125);
+      // Nama/Merek
+      ctx.font = "24px Georgia";
+      ctx.fillText("Syakila Azzahra P", cx, cy - 100);
 
-      ctx.save();
-      ctx.globalAlpha = 0.4;
-      ctx.fillStyle = "white";
-      ctx.fillText("Syakila Azzahra P", 199, 124);
-      ctx.restore();
+      // Jarum Jam
+      drawHand((hr * Math.PI/6) - Math.PI/2, 200, 14, "#222");
+      // Jarum Menit
+      drawHand((min * Math.PI/30) - Math.PI/2, 300, 8, "#444");
+      // Jarum Detik
+      drawHand((sec * Math.PI/30) - Math.PI/2, 330, 4, "#e74c3c");
 
-      // jarum jam
-      let hrAng = hr * Math.PI/6;
-      drawHand(hrAng, 95, 6, "black", true);
-
-      // jarum menit
-      let minAng = min * Math.PI/30;
-      drawHand(minAng, 140, 4, "black", true);
-
-      // jarum detik
-      let secAng = sec * Math.PI/30;
+      // Titik Tengah
       ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "red";
-      ctx.shadowColor = "rgba(255,0,0,0.6)";
-      ctx.shadowBlur = 8;
-      ctx.moveTo(200,200);
-      ctx.lineTo(200 + 160*Math.cos(secAng - Math.PI/2),
-                 200 + 160*Math.sin(secAng - Math.PI/2));
-      ctx.stroke();
-
-      // titik pusat
-      ctx.beginPath();
-      ctx.arc(200,200,7,0,2*Math.PI);
-      ctx.fillStyle = "red";
+      ctx.arc(cx, cy, 12, 0, 2*Math.PI);
+      ctx.fillStyle = "#e74c3c";
       ctx.fill();
 
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-
-      // jam digital + tanggal
-      const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-      const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-      let dayName = days[now.getDay()];
-      let date = now.getDate();
-      let monthName = months[now.getMonth()];
-      let year = now.getFullYear();
-
-      let digitalTime = `${Math.floor(hr).toString().padStart(2,'0')}:${Math.floor(min%60).toString().padStart(2,'0')}:${Math.floor(sec%60).toString().padStart(2,'0')}`;
-      let fullDate = `${dayName}, ${date} ${monthName} ${year}`;
-
-      digital.innerHTML = digitalTime;
+      // Update Digital
+      const digitalTime = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const fullDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      
+      digital.innerHTML = digitalTime.replace(/\./g, ':');
       dateDiv.innerHTML = fullDate;
 
       requestAnimationFrame(drawClock);
     }
 
-    function drawHand(angle, length, width, color, withShadow=false){
+    function drawHand(angle, length, width, color) {
       ctx.beginPath();
       ctx.lineWidth = width;
+      ctx.lineCap = "round";
       ctx.strokeStyle = color;
-      if(withShadow){
-        ctx.shadowColor = "rgba(0,0,0,0.4)";
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-      }
-      ctx.moveTo(200,200);
-      ctx.lineTo(200 + length*Math.cos(angle - Math.PI/2),
-                 200 + length*Math.sin(angle - Math.PI/2));
+      ctx.moveTo(400, 400);
+      ctx.lineTo(400 + Math.cos(angle) * length, 400 + Math.sin(angle) * length);
       ctx.stroke();
-      if(withShadow){
-        ctx.shadowColor = "transparent";
-        ctx.shadowBlur = 0;
-      }
     }
 
-    requestAnimationFrame(drawClock);
+    function updatePrayerTimes(){
+      const prayerTimes = { Subuh: "04:49", Dzuhur: "12:10", Ashar: "15:12", Maghrib: "18:13", Isya: "19:22" };
+      const now = new Date();
+      const current = now.getHours() * 60 + now.getMinutes();
+      
+      let html = "";
+      let foundNext = false;
 
-    // === Jadwal Sholat Hardcode + Highlight ===
-    function loadPrayerTimes(){
-      const prayerTimes = {
-        Subuh: "04:49",
-        Dzuhur: "12:10",
-        Ashar: "15:12",
-        Maghrib: "18:13",
-        Isya: "19:22"
-      };
+      for(let [name, time] of Object.entries(prayerTimes)){
+        let [h, m] = time.split(":").map(Number);
+        let prayerMinutes = h * 60 + m;
 
-      // waktu sekarang dalam menit
-      let now = new Date();
-      let currentMinutes = now.getHours()*60 + now.getMinutes();
-
-      function toMinutes(time){
-        let [h,m] = time.split(":").map(Number);
-        return h*60 + m;
-      }
-
-      // cari waktu sholat berikutnya
-      let nextPrayer = null;
-      for(let [name,time] of Object.entries(prayerTimes)){
-        if(toMinutes(time) > currentMinutes){
-          nextPrayer = name;
-          break;
-        }
-      }
-
-      // tampilkan dengan highlight
-      let html = "<h3>Waktu Sholat</h3>";
-      for(let [name,time] of Object.entries(prayerTimes)){
-        if(name === nextPrayer){
-          html += `<span style="color:red;font-weight:bold">${name}: ${time}</span><br>`;
+        if(!foundNext && prayerMinutes > current) {
+          html += `<div class="highlight">Selanjutnya: ${name} (${time})</div>`;
+          foundNext = true;
         } else {
-          html += `${name}: ${time}<br>`;
+          html += `<div>${name}</div><div>${time}</div>`;
         }
       }
-      document.getElementById("prayer-times").innerHTML = html;
+      prayerDiv.innerHTML = html;
     }
 
-    loadPrayerTimes();
+    setInterval(updatePrayerTimes, 60000); // Update tiap menit
+    updatePrayerTimes();
+    requestAnimationFrame(drawClock);
   </script>
 </body>
 </html>
