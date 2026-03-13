@@ -25,12 +25,18 @@
       font-size: 20px;
       margin-top: 5px;
     }
+    #prayer-times {
+      font-size: 18px;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
   <canvas id="clock" width="400" height="400"></canvas>
   <div id="digital"></div>
   <div id="date"></div>
+  <div id="prayer-times"></div> <!-- wadah jadwal sholat -->
 
   <script>
     const canvas = document.getElementById("clock");
@@ -110,11 +116,10 @@
       ctx.fillStyle = "black";
       ctx.fillText("Syakila Azzahra P", 200, 125);
 
-      // efek bayangan putih tipis untuk emboss
       ctx.save();
       ctx.globalAlpha = 0.4;
       ctx.fillStyle = "white";
-      ctx.fillText("Syakila Azzahra P", 199, 124); // sedikit bergeser
+      ctx.fillText("Syakila Azzahra P", 199, 124);
       ctx.restore();
 
       // jarum jam halus + bayangan
@@ -187,6 +192,29 @@
     }
 
     requestAnimationFrame(drawClock);
-  </script>
-</body>
-</html>
+
+    // === Jadwal Sholat ===
+    async function loadPrayerTimes(){
+      try {
+        let today = new Date();
+        let y = today.getFullYear();
+        let m = String(today.getMonth()+1).padStart(2,'0');
+        let d = String(today.getDate()).padStart(2,'0');
+
+        // API jadwal sholat (Poso, id kota 703)
+        let response = await fetch(`https://api.myquran.com/v1/sholat/jadwal/703/${y}/${m}/${d}`);
+        let data = await response.json();
+        let jadwal = data.data.jadwal;
+
+        let now = today.getHours()*60 + today.getMinutes();
+        function toMinutes(time){
+          let [h,m] = time.split(":").map(Number);
+          return h*60 + m;
+        }
+
+        let times = {
+          Subuh: jadwal.subuh,
+          Dzuhur: jadwal.dzuhur,
+          Ashar: jadwal.ashar,
+          Maghrib: jadwal.maghrib,
+          Isya
