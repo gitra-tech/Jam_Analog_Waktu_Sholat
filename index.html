@@ -13,25 +13,32 @@
       background: #fff;
       display: block;
       margin: 30px auto;
-      border: 8px solid #000000; /* border hitam */
+      border: 10px solid #000000; /* border hitam lebih tebal */
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      box-shadow: 0 0 25px rgba(0,0,0,0.3);
     }
     #digital {
-      font-size: 24px;
-      margin-top: 10px;
-      font-weight: bold;
+      font-size: 28px;       /* jam digital lebih besar */
+      font-weight: bold;     /* ditebalkan */
+      margin-top: 12px;
+    }
+    #date {
+      font-size: 20px;       /* tanggal lebih kecil */
+      font-weight: normal;   /* tidak terlalu tebal */
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
-  <canvas id="clock" width="300" height="300"></canvas>
+  <canvas id="clock" width="350" height="350"></canvas> <!-- canvas lebih besar -->
   <div id="digital"></div>
+  <div id="date"></div>
 
   <script>
     const canvas = document.getElementById("clock");
     const ctx = canvas.getContext("2d");
     const digital = document.getElementById("digital");
+    const dateDiv = document.getElementById("date");
 
     function drawClock(){
       const now = new Date();
@@ -39,23 +46,23 @@
       const min = now.getMinutes();
       const hr = now.getHours();
 
-      ctx.clearRect(0,0,300,300);
+      ctx.clearRect(0,0,350,350);
 
       // lingkaran jam
       ctx.beginPath();
-      ctx.arc(150,150,140,0,2*Math.PI);
-      ctx.strokeStyle = "black"; // lingkaran luar hitam
+      ctx.arc(175,175,160,0,2*Math.PI);
+      ctx.strokeStyle = "black";
       ctx.stroke();
 
-      // garis menit/jam (tick marks)
+      // garis menit/jam
       for(let i=0; i<60; i++){
         let ang = i * Math.PI/30;
-        let inner = (i % 5 === 0) ? 130 : 135;
-        let outer = 140;
-        let x1 = 150 + Math.cos(ang - Math.PI/2) * inner;
-        let y1 = 150 + Math.sin(ang - Math.PI/2) * inner;
-        let x2 = 150 + Math.cos(ang - Math.PI/2) * outer;
-        let y2 = 150 + Math.sin(ang - Math.PI/2) * outer;
+        let inner = (i % 5 === 0) ? 150 : 155;
+        let outer = 160;
+        let x1 = 175 + Math.cos(ang - Math.PI/2) * inner;
+        let y1 = 175 + Math.sin(ang - Math.PI/2) * inner;
+        let x2 = 175 + Math.cos(ang - Math.PI/2) * outer;
+        let y2 = 175 + Math.sin(ang - Math.PI/2) * outer;
         ctx.beginPath();
         ctx.moveTo(x1,y1);
         ctx.lineTo(x2,y2);
@@ -64,8 +71,8 @@
         ctx.stroke();
       }
 
-      // angka 1-12 lebih besar & dirapatkan ke garis
-      ctx.font = "22px Arial";
+      // angka 1-12 lebih besar & tebal
+      ctx.font = "bold 26px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "black";
@@ -75,31 +82,31 @@
       ctx.shadowOffsetY = 2;
       for(let num=1; num<=12; num++){
         let ang = num * Math.PI/6;
-        let x = 150 + Math.cos(ang - Math.PI/2) * 115; // lebih dekat ke garis
-        let y = 150 + Math.sin(ang - Math.PI/2) * 115;
+        let x = 175 + Math.cos(ang - Math.PI/2) * 130; // lebih dekat ke garis
+        let y = 175 + Math.sin(ang - Math.PI/2) * 130;
         ctx.fillText(num.toString(), x, y);
       }
       ctx.shadowColor = "transparent";
 
       // jarum jam
       let hrAng = ((hr%12) + min/60) * Math.PI/6;
-      drawHand(hrAng, 70, 6, "black");
+      drawHand(hrAng, 85, 6, "black");
 
       // jarum menit
       let minAng = (min + sec/60) * Math.PI/30;
-      drawHand(minAng, 100, 4, "black");
+      drawHand(minAng, 120, 4, "black");
 
       // jarum detik
       let secAng = sec * Math.PI/30;
-      drawHand(secAng, 110, 2, "red");
+      drawHand(secAng, 140, 2, "red");
 
       // titik pusat jarum warna merah
       ctx.beginPath();
-      ctx.arc(150,150,5,0,2*Math.PI);
+      ctx.arc(175,175,6,0,2*Math.PI);
       ctx.fillStyle = "red";
       ctx.fill();
 
-      // jam digital + hari + tanggal
+      // jam digital + tanggal
       const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
       const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
       let dayName = days[now.getDay()];
@@ -110,16 +117,17 @@
       let digitalTime = `${hr.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
       let fullDate = `${dayName}, ${date} ${monthName} ${year}`;
 
-      digital.innerHTML = digitalTime + "<br>" + fullDate;
+      digital.innerHTML = digitalTime;
+      dateDiv.innerHTML = fullDate;
     }
 
     function drawHand(angle, length, width, color){
       ctx.beginPath();
       ctx.lineWidth = width;
       ctx.strokeStyle = color;
-      ctx.moveTo(150,150);
-      ctx.lineTo(150 + length*Math.cos(angle - Math.PI/2),
-                 150 + length*Math.sin(angle - Math.PI/2));
+      ctx.moveTo(175,175);
+      ctx.lineTo(175 + length*Math.cos(angle - Math.PI/2),
+                 175 + length*Math.sin(angle - Math.PI/2));
       ctx.stroke();
     }
 
