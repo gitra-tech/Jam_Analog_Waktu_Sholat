@@ -12,7 +12,7 @@
     canvas {
       display: block;
       margin: 30px auto;
-      border: 10px solid #000000; /* lingkaran luar hitam */
+      border: 10px solid #000000;
       border-radius: 50%;
       box-shadow: 0 0 25px rgba(0,0,0,0.3);
     }
@@ -36,7 +36,7 @@
   <canvas id="clock" width="400" height="400"></canvas>
   <div id="digital"></div>
   <div id="date"></div>
-  <div id="prayer-times"></div> <!-- wadah jadwal sholat -->
+  <div id="prayer-times"></div>
 
   <script>
     const canvas = document.getElementById("clock");
@@ -53,21 +53,21 @@
 
       ctx.clearRect(0,0,400,400);
 
-      // background gradasi putih ke abu
+      // background
       let grad = ctx.createRadialGradient(200,200,50,200,200,200);
       grad.addColorStop(0,"#ffffff");
       grad.addColorStop(1,"#e0e0e0");
       ctx.fillStyle = grad;
       ctx.fillRect(0,0,400,400);
 
-      // lingkaran luar hitam polos
+      // lingkaran luar
       ctx.beginPath();
       ctx.arc(200,200,180,0,2*Math.PI);
       ctx.strokeStyle = "black";
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // garis menit/jam rapat ke luar
+      // garis menit/jam
       for(let i=0; i<60; i++){
         let ang = i * Math.PI/30;
         let inner = (i % 5 === 0) ? 165 : 170;
@@ -84,7 +84,7 @@
         ctx.stroke();
       }
 
-      // angka jam besar & tebal + highlight tipis
+      // angka jam
       ctx.font = "bold 30px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -99,7 +99,6 @@
         let y = 200 + Math.sin(ang - Math.PI/2) * 150;
         ctx.fillText(num.toString(), x, y);
 
-        // highlight putih tipis di angka
         ctx.save();
         ctx.globalAlpha = 0.3;
         ctx.fillStyle = "white";
@@ -109,7 +108,7 @@
       }
       ctx.shadowColor = "transparent";
 
-      // merek jam di antara titik tengah dan angka 12 + efek emboss putih
+      // merek jam
       ctx.font = "italic 18px Georgia";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -122,35 +121,32 @@
       ctx.fillText("Syakila Azzahra P", 199, 124);
       ctx.restore();
 
-      // jarum jam halus + bayangan
+      // jarum jam
       let hrAng = hr * Math.PI/6;
       drawHand(hrAng, 95, 6, "black", true);
 
-      // jarum menit halus + bayangan
+      // jarum menit
       let minAng = min * Math.PI/30;
       drawHand(minAng, 140, 4, "black", true);
 
-      // jarum detik dengan glow
+      // jarum detik
       let secAng = sec * Math.PI/30;
       ctx.beginPath();
       ctx.lineWidth = 2;
       ctx.strokeStyle = "red";
       ctx.shadowColor = "rgba(255,0,0,0.6)";
       ctx.shadowBlur = 8;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
       ctx.moveTo(200,200);
       ctx.lineTo(200 + 160*Math.cos(secAng - Math.PI/2),
                  200 + 160*Math.sin(secAng - Math.PI/2));
       ctx.stroke();
 
-      // titik pusat merah dengan glow
+      // titik pusat
       ctx.beginPath();
       ctx.arc(200,200,7,0,2*Math.PI);
       ctx.fillStyle = "red";
       ctx.fill();
 
-      // reset shadow
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
 
@@ -193,7 +189,7 @@
 
     requestAnimationFrame(drawClock);
 
-    // === Jadwal Sholat Hardcode ===
+    // === Jadwal Sholat Hardcode + Highlight ===
     function loadPrayerTimes(){
       const prayerTimes = {
         Subuh: "04:49",
@@ -203,9 +199,32 @@
         Isya: "19:22"
       };
 
+      // waktu sekarang dalam menit
+      let now = new Date();
+      let currentMinutes = now.getHours()*60 + now.getMinutes();
+
+      function toMinutes(time){
+        let [h,m] = time.split(":").map(Number);
+        return h*60 + m;
+      }
+
+      // cari waktu sholat berikutnya
+      let nextPrayer = null;
+      for(let [name,time] of Object.entries(prayerTimes)){
+        if(toMinutes(time) > currentMinutes){
+          nextPrayer = name;
+          break;
+        }
+      }
+
+      // tampilkan dengan highlight
       let html = "<h3>Waktu Sholat</h3>";
       for(let [name,time] of Object.entries(prayerTimes)){
-        html += `${name}: ${time}<br>`;
+        if(name === nextPrayer){
+          html += `<span style="color:red;font-weight:bold">${name}: ${time}</span><br>`;
+        } else {
+          html += `${name}: ${time}<br>`;
+        }
       }
       document.getElementById("prayer-times").innerHTML = html;
     }
