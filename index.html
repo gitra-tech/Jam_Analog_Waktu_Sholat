@@ -213,8 +213,37 @@
         }
 
         let times = {
-          Subuh: jadwal.subuh,
-          Dzuhur: jadwal.dzuhur,
-          Ashar: jadwal.ashar,
-          Maghrib: jadwal.maghrib,
-          Isya
+      Subuh: jadwal.subuh,
+      Dzuhur: jadwal.dzuhur,
+      Ashar: jadwal.ashar,
+      Maghrib: jadwal.maghrib,
+      Isya: jadwal.isya
+    };
+
+    // Cari waktu sholat berikutnya
+    let nextPrayer = null;
+    for(let [name,time] of Object.entries(times)){
+      if(toMinutes(time) > now){
+        nextPrayer = name;
+        break;
+      }
+    }
+
+    // Buat HTML dengan highlight
+    let html = "<h3>Waktu Sholat</h3>";
+    for(let [name,time] of Object.entries(times)){
+      if(name === nextPrayer){
+        html += `<span style="color:red;font-weight:bold">${name}: ${time}</span><br>`;
+      } else {
+        html += `${name}: ${time}<br>`;
+      }
+    }
+
+    document.getElementById("prayer-times").innerHTML = html;
+  } catch(err){
+    document.getElementById("prayer-times").innerHTML = "Gagal memuat jadwal sholat.";
+  }
+}
+
+// panggil sekali saat halaman dibuka
+loadPrayerTimes();
