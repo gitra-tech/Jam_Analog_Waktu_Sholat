@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jam Syakila - Standar KEMENAG</title>
+  <title>Jam Syakila - Lokasi Otomatis</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
@@ -15,13 +15,13 @@
     canvas { width: 100%; height: 100%; display: block; background-color: #fff; border: 10px solid #2c3e50; border-radius: 50%; box-shadow: 0 15px 40px rgba(0,0,0,0.25); }
     .info-card { width: 100%; max-width: 380px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     #digital { font-size: 2.2rem; font-weight: 800; color: #2c3e50; margin: 0; font-variant-numeric: tabular-nums; }
-    #date, #location-name { font-size: 0.85rem; color: #5d6d7e; margin-top: 5px; }
-    #location-name { color: #3498db; font-weight: bold; }
+    #date { font-size: 0.9rem; color: #5d6d7e; margin-top: 5px; }
+    #location-coords { font-size: 0.75rem; color: #7f8c8d; margin-top: 5px; }
+    #region-name { font-size: 1rem; color: #2980b9; font-weight: bold; margin-top: 2px; }
     hr { border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 15px 0; }
     .prayer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; }
-    .next-prayer { grid-column: span 2; background: #e74c3c; color: white; padding: 8px; border-radius: 10px; font-weight: bold; margin-bottom: 5px; animation: pulse 2s infinite; }
+    .next-prayer { grid-column: span 2; background: #e74c3c; color: white; padding: 8px; border-radius: 10px; font-weight: bold; margin-bottom: 5px; }
     .prayer-row { display: flex; justify-content: space-between; padding: 4px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
   </style>
 </head>
 <body>
@@ -33,7 +33,8 @@
   <div class="info-card">
     <p id="digital">00:00:00</p>
     <p id="date">Memuat Tanggal...</p>
-    <p id="location-name">Mendeteksi Lokasi...</p>
+    <p id="location-coords">Mendeteksi GPS...</p>
+    <p id="region-name">Mencari Wilayah...</p>
     <hr>
     <div id="prayer-times" class="prayer-container">
       <div style="grid-column: span 2;">Sinkronisasi KEMENAG...</div>
@@ -45,10 +46,10 @@
     const ctx = canvas.getContext("2d");
     const digital = document.getElementById("digital");
     const dateDiv = document.getElementById("date");
-    const locationDiv = document.getElementById("location-name");
+    const coordsDiv = document.getElementById("location-coords");
+    const regionDiv = document.getElementById("region-name");
     const prayerDiv = document.getElementById("prayer-times");
 
-    // 1. Gambar Jam
     function drawClock() {
       const now = new Date();
       const ms = now.getMilliseconds();
@@ -78,8 +79,9 @@
         ctx.fillText(num.toString(), cx + Math.cos(ang) * 280, cy + Math.sin(ang) * 280);
       }
 
-      ctx.font = "italic 28px Georgia";
-      ctx.fillStyle = "#95a5a6";
+      // PERUBAHAN: Nama diperbesar (35px) dan dihitamkan (#000)
+      ctx.font = "bold italic 35px Georgia";
+      ctx.fillStyle = "#000000";
       ctx.fillText("Syakila Azzahra P", cx, cy + 110);
 
       drawHand((hr * Math.PI/6) - Math.PI/2, 220, 18, "#2c3e50");
@@ -102,75 +104,69 @@
       ctx.stroke();
     }
 
-    // 2. Logika API dengan Parameter KEMENAG (Subuh 20, Isya 18)
-    async function getPrayerTimes() {
+    async function getData() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          locationDiv.innerText = `Lokasi: ${lat.toFixed(2)}, ${lng.toFixed(2)} (KEMENAG RI)`;
+          coordsDiv.innerText = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
 
+          // Ambil Nama Wilayah (Reverse Geocoding)
           try {
-            // Menggunakan method=custom dengan tuning Subuh 20 & Isya 18
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+            const geoData = await geoRes.json();
+            const city = geoData.address.city || geoData.address.town || geoData.address.municipality || "Wilayah Tidak Dikenal";
+            regionDiv.innerText = city;
+          } catch (e) {
+            regionDiv.innerText = "Gagal memuat nama daerah";
+          }
+
+          // Ambil Jadwal Sholat KEMENAG
+          try {
             const url = `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=99&methodSettings=20,null,18`;
             const response = await fetch(url);
             const data = await response.json();
-            const timings = data.data.timings;
-            
-            displayPrayers({
-              Subuh: timings.Fajr,
-              Dzuhur: timings.Dhuhr,
-              Ashar: timings.Asr,
-              Maghrib: timings.Maghrib,
-              Isya: timings.Isha
-            });
+            displayPrayers(data.data.timings);
           } catch (err) {
-            prayerDiv.innerHTML = "Gagal memuat API.";
+            prayerDiv.innerHTML = "Gagal memuat jadwal";
           }
         }, () => {
-          locationDiv.innerText = "GPS Mati. Menggunakan Jakarta (KEMENAG).";
+          regionDiv.innerText = "GPS tidak aktif";
           fetchDefaultJakarta();
         });
       }
     }
 
     async function fetchDefaultJakarta() {
-      // Default Jakarta dengan standar Kemenag (method 20)
       const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=Jakarta&country=Indonesia&method=20`);
       const data = await res.json();
-      const t = data.data.timings;
-      displayPrayers({ Subuh: t.Fajr, Dzuhur: t.Dhuhr, Ashar: t.Asr, Maghrib: t.Maghrib, Isya: t.Isha });
+      regionDiv.innerText = "Jakarta (Default)";
+      displayPrayers(data.data.timings);
     }
 
-    function displayPrayers(times) {
+    function displayPrayers(timings) {
+      const times = { Subuh: timings.Fajr, Dzuhur: timings.Dhuhr, Ashar: timings.Asr, Maghrib: timings.Maghrib, Isya: timings.Isha };
       const now = new Date();
       const currentMin = now.getHours() * 60 + now.getMinutes();
       let html = "";
       let foundNext = false;
 
-      const entries = Object.entries(times);
-      for (let [name, time] of entries) {
+      for (let [name, time] of Object.entries(times)) {
         let [h, m] = time.split(":").map(Number);
         let pMin = h * 60 + m;
 
         if (!foundNext && pMin > currentMin) {
-          html += `<div class="next-prayer">Berikutnya: ${name} (${time})</div>`;
+          html += `<div class="next-prayer">Selanjutnya: ${name} (${time})</div>`;
           foundNext = true;
         } else {
           html += `<div class="prayer-row"><span>${name}</span> <span>${time}</span></div>`;
         }
       }
-      
-      // Jika semua waktu sholat hari ini sudah lewat, highlight Subuh besok
-      if(!foundNext) {
-        html = `<div class="next-prayer">Berikutnya: Subuh (${times.Subuh})</div>` + html;
-      }
-
       prayerDiv.innerHTML = html;
     }
 
-    getPrayerTimes();
-    setInterval(getPrayerTimes, 1800000); 
+    getData();
+    setInterval(getData, 1800000); 
     requestAnimationFrame(drawClock);
   </script>
 </body>
