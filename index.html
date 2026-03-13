@@ -103,6 +103,11 @@
       }
       ctx.shadowColor = "transparent";
 
+      // merek jam di bawah angka 12
+      ctx.font = "italic 18px Georgia";
+      ctx.fillStyle = "black";
+      ctx.fillText("Syakila Azzahra P", 200, 80);
+
       // jarum jam halus + bayangan
       let hrAng = hr * Math.PI/6;
       drawHand(hrAng, 95, 6, "black", true);
