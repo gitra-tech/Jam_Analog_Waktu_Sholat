@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Jam & Waktu Sholat - Syakila Azzahra P</title>
   <style>
-    /* ... (Style tetap sama seperti sebelumnya) ... */
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
@@ -26,16 +25,15 @@
     .prayer-row { display: flex; justify-content: space-between; padding: 10px 8px; background: rgba(0,0,0,0.03); border-radius: 8px; border-bottom: 2px solid rgba(0,0,0,0.05); }
     .prayer-row span:first-child { font-weight: 600; color: #555; }
     
-    /* Tambahan Tombol Aktivasi Suara */
     #audio-status {
-      font-size: 0.7rem; color: #e67e22; margin-bottom: 10px; cursor: pointer;
-      background: #fef5e7; padding: 5px 10px; border-radius: 10px; border: 1px solid #f39c12;
+      font-size: 0.75rem; color: #e67e22; margin-bottom: 10px; cursor: pointer;
+      background: #fef5e7; padding: 8px 15px; border-radius: 12px; border: 1px solid #f39c12;
+      font-weight: bold; transition: all 0.3s ease;
     }
   </style>
 </head>
 <body>
 
-  <!-- Klik ini sekali saat web dibuka agar browser mengizinkan suara -->
   <div id="audio-status" onclick="enableAudio()">🔔 Klik untuk Aktifkan Suara Adzan</div>
 
   <div class="clock-outer-container">
@@ -54,9 +52,9 @@
     </div>
   </div>
 
-  <!-- Sound Element (Adzan Pendek) -->
+  <!-- Audio Adzan Jernih & Lantang (Madinah Style) -->
   <audio id="adzan-audio" preload="auto">
-    <source src="https://www.islamcan.com/audio/adhan/azan1.mp3" type="audio/mpeg">
+    <source src="https://www.islamcan.com/audio/adhan/azan2.mp3" type="audio/mpeg">
   </audio>
 
   <script>
@@ -69,21 +67,31 @@
     const audioStatus = document.getElementById("audio-status");
     const adzanAudio = document.getElementById("adzan-audio");
     
+    // Status Audio disimpan di LocalStorage agar tidak muncul terus
+    let audioEnabled = localStorage.getItem("adzanEnabled") === "true";
     let currentPrayerTimings = null;
-    let audioEnabled = false;
-    let lastPlayedMinute = ""; // Agar suara tidak berulang-ulang di menit yang sama
+    let lastPlayedMinute = ""; 
 
-    // Fungsi Aktifkan Audio (Penting karena aturan browser modern)
+    if (audioEnabled) {
+        setAudioUIActive();
+    }
+
     function enableAudio() {
       adzanAudio.play().then(() => {
-        adzanAudio.pause(); // Tes putar lalu pause
+        adzanAudio.pause();
         adzanAudio.currentTime = 0;
         audioEnabled = true;
-        audioStatus.innerHTML = "✅ Suara Adzan Aktif";
-        audioStatus.style.color = "#27ae60";
-        audioStatus.style.background = "#e9f7ef";
-        audioStatus.style.border = "1px solid #27ae60";
-      }).catch(e => console.log("Audio diblokir browser"));
+        localStorage.setItem("adzanEnabled", "true");
+        setAudioUIActive();
+      }).catch(e => console.log("Izin audio diperlukan"));
+    }
+
+    function setAudioUIActive() {
+      audioStatus.innerHTML = "✅ Suara Adzan Siap";
+      audioStatus.style.color = "#27ae60";
+      audioStatus.style.background = "#e9f7ef";
+      audioStatus.style.border = "1px solid #27ae60";
+      setTimeout(() => { audioStatus.style.opacity = "0.5"; }, 3000);
     }
 
     function updateDailyBackground() {
@@ -98,7 +106,6 @@
       const min = now.getMinutes();
       const hr = now.getHours();
 
-      // Logika Cek Waktu Adzan (Hanya jalan jika audio aktif & detik ke-0)
       if (audioEnabled && sec === 0) {
         checkAndPlayAdzan(hr, min);
       }
@@ -106,6 +113,7 @@
       ctx.clearRect(0, 0, 800, 800);
       const cx = 400, cy = 400, radius = 370;
 
+      // Draw Face Marks
       for(let i=0; i<60; i++) {
         let ang = i * Math.PI/30;
         let isHour = i % 5 === 0;
@@ -117,6 +125,7 @@
         ctx.stroke();
       }
 
+      // Draw Numbers
       ctx.font = "bold 65px Arial";
       ctx.fillStyle = "#2c3e50";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -125,14 +134,17 @@
         ctx.fillText(num.toString(), cx + Math.cos(ang) * 280, cy + Math.sin(ang) * 280);
       }
 
+      // Branding
       ctx.font = "bold italic 30px Georgia";
       ctx.fillStyle = "#2c3e50";
       ctx.fillText("Syakila Azzahra P", cx, cy - 110);
 
+      // Hands
       drawHand(((hr + min/60) * Math.PI/6) - Math.PI/2, 220, 18, "#2c3e50");
       drawHand(((min + sec/60) * Math.PI/30) - Math.PI/2, 310, 10, "#34495e");
       drawHand(((sec + ms/1000) * Math.PI/30) - Math.PI/2, 340, 5, "#e74c3c");
 
+      // Center Pin
       ctx.beginPath(); ctx.arc(cx, cy, 15, 0, 2*Math.PI); ctx.fillStyle = "#2c3e50"; ctx.fill();
       ctx.beginPath(); ctx.arc(cx, cy, 6, 0, 2*Math.PI); ctx.fillStyle = "#e74c3c"; ctx.fill();
 
@@ -154,7 +166,7 @@
       if (!currentPrayerTimings) return;
       const timeNow = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
       
-      const adj = 2; 
+      const adj = 2; // Penyesuaian waktu kemenag
       const prayerTimes = [
         addMinutes(currentPrayerTimings.Fajr, adj),
         addMinutes(currentPrayerTimings.Dhuhr, adj),
@@ -165,13 +177,21 @@
 
       if (prayerTimes.includes(timeNow) && lastPlayedMinute !== timeNow) {
         lastPlayedMinute = timeNow;
+        adzanAudio.volume = 1.0;
         adzanAudio.currentTime = 0;
         adzanAudio.play();
         
-        // Matikan suara setelah 8 detik (Hanya "Allahu Akbar Allahu Akbar")
+        // Logika Fade Out dan Stop di detik ke-9
         setTimeout(() => {
-          adzanAudio.pause();
-        }, 8000); 
+            let fadeInterval = setInterval(() => {
+                if (adzanAudio.volume > 0.1) {
+                    adzanAudio.volume -= 0.1;
+                } else {
+                    adzanAudio.pause();
+                    clearInterval(fadeInterval);
+                }
+            }, 100);
+        }, 9000); 
       }
     }
 
