@@ -14,27 +14,33 @@
     .clock-outer-container { width: 100%; max-width: 380px; padding: 10px; }
     .clock-wrapper { width: 100%; aspect-ratio: 1 / 1; position: relative; }
     canvas { width: 100%; height: 100%; display: block; background-color: #fff; border: 10px solid #2c3e50; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    .info-card { width: 100%; max-width: 380px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 10px; }
+    .info-card { width: 100%; max-width: 380px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 10px; }
     #digital { font-size: 2.2rem; font-weight: 800; color: #2c3e50; margin: 0; font-variant-numeric: tabular-nums; }
     #date { font-size: 0.9rem; color: #5d6d7e; margin-top: 5px; }
     #location-coords { font-size: 0.75rem; color: #2980b9; margin-top: 10px; font-weight: 600; }
     hr { border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 15px 0; }
     .prayer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem; text-align: left; }
-    .next-prayer { grid-column: span 2; background: #e74c3c; color: white; padding: 15px; border-radius: 15px; font-weight: bold; margin-bottom: 5px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
+    .next-prayer { grid-column: span 2; background: #27ae60; color: white; padding: 15px; border-radius: 15px; font-weight: bold; margin-bottom: 5px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
     .countdown-text { font-size: 0.8rem; font-weight: normal; opacity: 0.9; }
     .prayer-row { display: flex; justify-content: space-between; padding: 10px 8px; background: rgba(0,0,0,0.03); border-radius: 8px; border-bottom: 2px solid rgba(0,0,0,0.05); }
     .prayer-row span:first-child { font-weight: 600; color: #555; }
     
-    #audio-status {
-      font-size: 0.75rem; color: #e67e22; margin-bottom: 10px; cursor: pointer;
-      background: #fef5e7; padding: 8px 15px; border-radius: 12px; border: 1px solid #f39c12;
-      font-weight: bold; transition: all 0.3s ease;
+    .btn-group { display: flex; gap: 10px; margin-bottom: 10px; width: 100%; max-width: 380px; }
+    .action-btn {
+      flex: 1; font-size: 0.75rem; padding: 12px; border-radius: 12px; border: none;
+      font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+    #audio-status { background: #f39c12; color: white; }
+    #test-btn { background: #34495e; color: white; }
+    .active-audio { background: #27ae60 !important; }
   </style>
 </head>
 <body>
 
-  <div id="audio-status" onclick="enableAudio()">🔔 Klik untuk Aktifkan Suara Adzan</div>
+  <div class="btn-group">
+    <button id="audio-status" class="action-btn" onclick="enableAudio()">🔔 Aktifkan Adzan</button>
+    <button id="test-btn" class="action-btn" onclick="testAdzan()">🔊 Tes Suara</button>
+  </div>
 
   <div class="clock-outer-container">
     <div class="clock-wrapper">
@@ -45,15 +51,15 @@
   <div class="info-card">
     <p id="digital">00:00:00</p>
     <p id="date">Memuat Tanggal...</p>
-    <p id="location-coords">Sinkronisasi GPS...</p>
+    <p id="location-coords">Menunggu Izin Lokasi...</p>
     <hr>
     <div id="prayer-times" class="prayer-container">
-      <div style="grid-column: span 2; text-align: center;">Sinkronisasi KEMENAG...</div>
+      <div style="grid-column: span 2; text-align: center;">Mengambil Jadwal Sholat...</div>
     </div>
   </div>
 
-  <!-- Audio Adzan Jernih & Lantang (Madinah Style) -->
   <audio id="adzan-audio" preload="auto">
+    <source src="https://vocaroo.com/media/download_temp/V1be552zU4y8" type="audio/mpeg">
     <source src="https://www.islamcan.com/audio/adhan/azan2.mp3" type="audio/mpeg">
   </audio>
 
@@ -67,31 +73,31 @@
     const audioStatus = document.getElementById("audio-status");
     const adzanAudio = document.getElementById("adzan-audio");
     
-    // Status Audio disimpan di LocalStorage agar tidak muncul terus
-    let audioEnabled = localStorage.getItem("adzanEnabled") === "true";
+    let audioEnabled = false;
     let currentPrayerTimings = null;
     let lastPlayedMinute = ""; 
-
-    if (audioEnabled) {
-        setAudioUIActive();
-    }
 
     function enableAudio() {
       adzanAudio.play().then(() => {
         adzanAudio.pause();
         adzanAudio.currentTime = 0;
         audioEnabled = true;
-        localStorage.setItem("adzanEnabled", "true");
-        setAudioUIActive();
-      }).catch(e => console.log("Izin audio diperlukan"));
+        audioStatus.innerHTML = "✅ Adzan Aktif";
+        audioStatus.classList.add("active-audio");
+        alert("Suara Adzan Berhasil Diaktifkan!");
+      }).catch(e => alert("Klik tombol lagi untuk memberi izin suara."));
     }
 
-    function setAudioUIActive() {
-      audioStatus.innerHTML = "✅ Suara Adzan Siap";
-      audioStatus.style.color = "#27ae60";
-      audioStatus.style.background = "#e9f7ef";
-      audioStatus.style.border = "1px solid #27ae60";
-      setTimeout(() => { audioStatus.style.opacity = "0.5"; }, 3000);
+    function testAdzan() {
+      if(!audioEnabled) alert("Aktifkan Adzan dulu ya!");
+      adzanAudio.currentTime = 0;
+      adzanAudio.play();
+      setTimeout(() => {
+        if(confirm("Suara terdengar? Klik OK untuk hentikan tes.")) {
+            adzanAudio.pause();
+            adzanAudio.currentTime = 0;
+        }
+      }, 5000);
     }
 
     function updateDailyBackground() {
@@ -113,7 +119,7 @@
       ctx.clearRect(0, 0, 800, 800);
       const cx = 400, cy = 400, radius = 370;
 
-      // Draw Face Marks
+      // Draw Marks
       for(let i=0; i<60; i++) {
         let ang = i * Math.PI/30;
         let isHour = i % 5 === 0;
@@ -163,10 +169,10 @@
     }
 
     function checkAndPlayAdzan(h, m) {
-      if (!currentPrayerTimings) return;
+      if (!currentPrayerTimings || !audioEnabled) return;
       const timeNow = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
       
-      const adj = 2; // Penyesuaian waktu kemenag
+      const adj = 2; 
       const prayerTimes = [
         addMinutes(currentPrayerTimings.Fajr, adj),
         addMinutes(currentPrayerTimings.Dhuhr, adj),
@@ -177,21 +183,8 @@
 
       if (prayerTimes.includes(timeNow) && lastPlayedMinute !== timeNow) {
         lastPlayedMinute = timeNow;
-        adzanAudio.volume = 1.0;
         adzanAudio.currentTime = 0;
-        adzanAudio.play();
-        
-        // Logika Fade Out dan Stop di detik ke-9
-        setTimeout(() => {
-            let fadeInterval = setInterval(() => {
-                if (adzanAudio.volume > 0.1) {
-                    adzanAudio.volume -= 0.1;
-                } else {
-                    adzanAudio.pause();
-                    clearInterval(fadeInterval);
-                }
-            }, 100);
-        }, 9000); 
+        adzanAudio.play().catch(e => console.log("Gagal putar otomatis:", e));
       }
     }
 
@@ -200,18 +193,21 @@
         navigator.geolocation.getCurrentPosition(async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          coordsDiv.innerText = `Terhubung ke KEMENAG RI (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
+          coordsDiv.innerText = `📍 Lokasi Terdeteksi (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
           try {
-            const url = `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=99&methodSettings=20,null,18`;
+            const url = `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=20`;
             const response = await fetch(url);
             const data = await response.json();
             currentPrayerTimings = data.data.timings;
-          } catch (err) { console.log("Gagal API"); }
+          } catch (err) { fetchDefaultJakarta(); }
         }, () => fetchDefaultJakarta());
+      } else {
+        fetchDefaultJakarta();
       }
     }
 
     async function fetchDefaultJakarta() {
+      coordsDiv.innerText = "📍 Menggunakan Lokasi Default (Jakarta)";
       const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=Jakarta&country=Indonesia&method=20`);
       const data = await res.json();
       currentPrayerTimings = data.data.timings;
@@ -238,13 +234,13 @@
           let diffSec = prayerTotalSec - currentTotalSec;
           let diffH = Math.floor(diffSec / 3600);
           let diffM = Math.floor((diffSec % 3600) / 60);
-          nextHTML = `<div class="next-prayer"><span>Selanjutnya: ${name} (${time})</span><span class="countdown-text">${diffH > 0 ? diffH + ' jam ' : ''}${diffM} menit lagi</span></div>`;
+          nextHTML = `<div class="next-prayer"><span>Selanjutnya: ${name} (${time})</span><span class="countdown-text">${diffH > 0 ? diffH + 'j ' : ''}${diffM} menit lagi</span></div>`;
           foundNext = true;
         } else {
           listHTML += `<div class="prayer-row"><span>${name}</span> <span>${time}</span></div>`;
         }
       }
-      if (!foundNext) nextHTML = `<div class="next-prayer">Menunggu Waktu Subuh</div>`;
+      if (!foundNext) nextHTML = `<div class="next-prayer">Menanti Waktu Subuh</div>`;
       prayerDiv.innerHTML = nextHTML + listHTML;
     }
 
